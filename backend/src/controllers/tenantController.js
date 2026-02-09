@@ -2,6 +2,7 @@ import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
 
 export const registerTenant = async (req, res) => {
+  console.log('Register Tenant Request Body:', req.body);
   const {
     companyName,
     subdomain,
@@ -108,7 +109,7 @@ export const registerTenant = async (req, res) => {
 
     // 8. Audit log
     await client.query(
-  `
+      `
   INSERT INTO audit_logs (
     tenant_id,
     user_id,
@@ -118,14 +119,14 @@ export const registerTenant = async (req, res) => {
   )
   VALUES ($1, $2, $3, $4, $5)
   `,
-  [
-    tenantId,
-    req.user.userId,
-    'TENANT_CREATED',
-    'tenant',
-    tenantId,
-  ]
-);
+      [
+        tenantId,
+        adminUserId, // Use the newly created admin user as the actor
+        'TENANT_CREATED',
+        'tenant',
+        tenantId,
+      ]
+    );
 
     // 9. Commit transaction
     await client.query('COMMIT');
@@ -139,7 +140,7 @@ export const registerTenant = async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Tenant registration error:', error);
+    console.error('Tenant registration error DETAILS:', error);
 
     return res.status(500).json({
       success: false,
