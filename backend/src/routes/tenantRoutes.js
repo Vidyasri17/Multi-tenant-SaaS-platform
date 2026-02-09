@@ -7,8 +7,6 @@ const router = express.Router();
 
 router.post(
   '/register',
-  authenticate,
-  requireSuperAdmin,
   registerTenant
 );
 
